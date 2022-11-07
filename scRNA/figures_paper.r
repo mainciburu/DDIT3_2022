@@ -13,7 +13,34 @@ col.ery<-c("CD34"="#FFFF33", "BFU"="#A65628",
            "Early_basophilic"="#377EB8", "Late_basophilic"="#4DAF4A", 
            "Polychromatic"="#FF7F00", "Orthochromatic"="#984EA3", "Reticulocytes"="#899DA4")
 
-source("/home/mainciburu/scRNA/pipeline_2.0/08_trajectory_analysis/plot_gene_trends.r")
+########################
+#####  Functions   #####
+########################
+
+plot_trend_2conditions <- function(data, gene){
+  test_results <- wilcox.test(data$trend ~ data$condition)
+  tv_value <- sum(abs(data$trend[data$condition=="DDIT3"] - data$trend[data$condition=="Control"]))
+    p <- ggplot(data, aes(x = time, y = trend, group = condition, color=condition)) + 
+       geom_ribbon(aes(ymin = ymin , ymax = ymax), linetype = 2, alpha=0.1)+
+       geom_line(size = 1.5) + 
+       scale_color_manual(values = c(control="#4575B4", DDIT3 = "#D73027")) +
+       labs(title = gene,
+            subtitle = paste0('Wilcox p-value:', signif(test_results$p.val, 3),
+                                '; Total Variation:', signif(tv_value,3)),
+            x = "Pseudotime", y = "Expression")
+    p<-p + theme(text = element_text(face = "bold", color="black"), 
+                           plot.title = element_text(size = 28), 
+                           plot.subtitle = element_text(size = 16), 
+                           legend.position = "none",
+                           axis.text = element_text(size = 30, color="black"),
+                           axis.title = element_text(size = 20),
+                           axis.line = element_line(colour = "black", size = 1),
+                           axis.ticks.length=unit(.35, "cm")) +
+            scale_y_continuous(labels = scales::label_number(accuracy = 0.1)) +
+            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                  panel.background = element_blank())
+    return(p)
+}
 
 
 ########################
@@ -177,7 +204,7 @@ names(results.control)<-"Ery"
 names(results.ddit3)<-"Ery"
 
 for(g in gg){
-  p<-plot_trends(r1 = results.control, r2 = results.ddit3, gg = g, 
+  p<-plot_trend_2conditions(r1 = results.control, r2 = results.ddit3, gg = g, 
                  bb = "Ery", mode = 211, c1 = "Control", c2 = "DDIT3",
                  col1 = "#4575B4", col2 = "#D73027")
   p <- p + ggtitle(g)
@@ -299,7 +326,7 @@ dev.off()
 gg<-c("SAE1", "ZNF574", "WDR18", "VPS11", "MYB", "FOXO3", "HBB", "HBA1", "HBA2", "HBM")
 
 for(g in gg){
-  p<-plot_trends(r1 = results.control, r2 = results.ddit3, gg = g, 
+  p<-plot_trend_2conditions(r1 = results.control, r2 = results.ddit3, gg = g, 
                  bb = "Ery", mode = 211, c1 = "Control", c2 = "DDIT3",
                  col1 = "#4575B4", col2 = "#D73027")
   p <- p + ggtitle(g)

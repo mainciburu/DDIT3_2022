@@ -14,18 +14,27 @@ import seaborn as sns
 from collections import Counter
 import feather
 
-
 ########## Input data ####################
 
+### DDIT3 dataset
 h5ad_file="/home/mainciburu/scRNA/diff_ddit3/loom/ddit3_ery.h5ad"
 loom_file="/home/mainciburu/scRNA/diff_ddit3/loom/ddit3_ery_norm.loom"
 norm_df_file="/home/mainciburu/scRNA/diff_ddit3/loom/ddit3_ery_norm_mat.csv"
 norm_df_ori_file="/home/mainciburu/scRNA/diff_ddit3/loom/ddit3_ery_norm_mat_full.csv"
 umap_seurat_file="/home/mainciburu/scRNA/diff_ddit3/umap_ddit3_ery.txt"
-#final_cells_file="/home/mainciburu/scRNA/scanpy/data/final_cells_young.csv"
 
 plot_name = "/home/mainciburu/scRNA/diff_ddit3/pics/palantir/ddit3_ery"
 res_path="/home/mainciburu/scRNA/diff_ddit3/palantir_results/ddit3/"
+
+### Control dataset
+#h5ad_file="/home/mainciburu/scRNA/diff_ddit3/loom/control_ery.h5ad"
+#loom_file="/home/mainciburu/scRNA/diff_ddit3/loom/control_ery_norm.loom"
+#norm_df_file="/home/mainciburu/scRNA/diff_ddit3/loom/control_ery_norm_mat.csv"
+#norm_df_ori_file="/home/mainciburu/scRNA/diff_ddit3/loom/control_ery_norm_mat_full.csv"
+#umap_seurat_file="/home/mainciburu/scRNA/diff_ddit3/umap_control_ery.txt"
+
+#plot_name = "/home/mainciburu/scRNA/diff_ddit3/pics/palantir/control_ery"
+#res_path="/home/mainciburu/scRNA/diff_ddit3/palantir_results/control/"
 
 ##########################################
 
@@ -51,20 +60,19 @@ dm_res = palantir.utils.run_diffusion_maps(pca_projections, n_components=20)
 # Multiscale data
 ms_data = palantir.utils.determine_multiscale_space(dm_res)
 
-start_cell=["TTGCTGCGTTCTCAGA_DDIT3"]
-#start_cell=["ATCGCCTGTCGTGATT_control"] 
+start_cell=["TTGCTGCGTTCTCAGA_DDIT3"]         ### DDIT3
+#start_cell=["ATCGCCTGTCGTGATT_control"]      ### Control
 
 pr_res = palantir.core.run_palantir(ms_data, start_cell, n_jobs = 1)
 
-
 final_cell=list(pr_res.branch_probs.columns)
+
 # Rename trajectories
 i=pr_res.branch_probs.columns
 df = adata.obs['singleR']
 df = df.loc[i]
 names = list(df)
 pr_res.branch_probs.columns = names
-
 
 # Plot results
 cells=[start_cell, final_cell]
@@ -87,6 +95,8 @@ pickle.dump(pr_res, file_pr)
 # !!Use original normalized expression values (not integrated)
 norm_df_ori = pd.read_csv(norm_df_ori_file, index_col = 0)
 norm_df_ori = pd.DataFrame.transpose(norm_df_ori)
+
 # Impute data
 imp_df = palantir.utils.run_magic_imputation(norm_df_ori, dm_res)
 feather.write_dataframe(imp_df, res_path + 'imp_df.feather')
+
