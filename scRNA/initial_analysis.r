@@ -380,7 +380,7 @@ saveRDS(int.ery, file = "scRNA/diff_ddit3/seurat_int_ery_reti.rds")
 
 # differential expression per condition and cluster
 DefaultAssay(int.ery)<-"RNA"
-Idents(int.ery)<-"singleR"
+Idents(int.ery)<-"singleR_condition"
 res<-data.frame()
 for(state in unique(int.ery$singleR)){
   res.i<-FindMarkers(int.ery, ident.1 = paste0(state, "_DDIT3"),
